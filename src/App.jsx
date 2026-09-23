@@ -81,6 +81,15 @@ function App() {
           loading={btc.loading}
           error={btc.error}
         />
+        <RateCard
+          title="BTC"
+          subtitle="0,065 BTC"
+          unit="PLN"
+          rate={btc.pln?.rate != null ? 0.065 * btc.pln.rate : undefined}
+          changePct={btc.pln?.changePct}
+          loading={btc.loading}
+          error={btc.error}
+        />
       </main>
 
       <footer className="app-footer">
