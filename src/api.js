@@ -1,7 +1,8 @@
 // NBP API - oficjalne kursy średnie NBP (tabela A), kurs z dziś + wczoraj do wyliczenia zmiany
 export async function fetchUsdPln() {
   const res = await fetch(
-    "https://api.nbp.pl/api/exchangerates/rates/a/usd/last/2/?format=json"
+    `https://api.nbp.pl/api/exchangerates/rates/a/usd/last/2/?format=json&_=${Date.now()}`,
+    { cache: "no-store" }
   );
   if (!res.ok) throw new Error("Błąd NBP API");
   const data = await res.json();
@@ -18,7 +19,8 @@ export async function fetchUsdPln() {
 // CoinGecko API - kurs BTC do PLN i USD wraz ze zmianą 24h
 export async function fetchBtcRates() {
   const res = await fetch(
-    "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=pln,usd&include_24hr_change=true"
+    `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=pln,usd&include_24hr_change=true&_=${Date.now()}`,
+    { cache: "no-store" }
   );
   if (!res.ok) throw new Error("Błąd CoinGecko API");
   const data = await res.json();

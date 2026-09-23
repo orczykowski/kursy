@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { fetchUsdPln, fetchBtcRates } from "./api";
+import { readCache, writeCache } from "./cache";
 import RateCard from "./RateCard";
 import "./App.css";
 
@@ -8,19 +9,29 @@ function App() {
   const [btc, setBtc] = useState({ loading: true, error: false });
   const [lastUpdate, setLastUpdate] = useState(null);
 
-  const loadData = useCallback(async () => {
+  // force=true (np. przycisk "Odśwież") zawsze pomija cache i pobiera świeże dane;
+  // w przeciwnym razie dane starsze niż 5 minut są uznawane za nieaktualne.
+  const loadData = useCallback(async (force = false) => {
     setUsdPln((s) => ({ ...s, loading: true, error: false }));
     setBtc((s) => ({ ...s, loading: true, error: false }));
 
     try {
-      const data = await fetchUsdPln();
+      let data = !force && readCache("usdPln");
+      if (!data) {
+        data = await fetchUsdPln();
+        writeCache("usdPln", data);
+      }
       setUsdPln({ ...data, loading: false, error: false });
     } catch {
       setUsdPln({ loading: false, error: true });
     }
 
     try {
-      const data = await fetchBtcRates();
+      let data = !force && readCache("btc");
+      if (!data) {
+        data = await fetchBtcRates();
+        writeCache("btc", data);
+      }
       setBtc({ ...data, loading: false, error: false });
     } catch {
       setBtc({ loading: false, error: true });
@@ -31,7 +42,7 @@ function App() {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 60_000);
+    const interval = setInterval(() => loadData(), 60_000);
     return () => clearInterval(interval);
   }, [loadData]);
 
@@ -73,7 +84,7 @@ function App() {
       </main>
 
       <footer className="app-footer">
-        <button type="button" className="refresh-btn" onClick={loadData}>
+        <button type="button" className="refresh-btn" onClick={() => loadData(true)}>
           Odśwież
         </button>
         {lastUpdate && (
