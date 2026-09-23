@@ -50,18 +50,20 @@ function App() {
     <div className="app">
       <header className="app-header">
         <h1>Kursy walut</h1>
-        <p className="tagline">Kursy rynkowe (fxratesapi, CoinGecko) — dane poglądowe</p>
+        <p className="tagline">USD z mBanku, BTC z CoinGecko — dane poglądowe</p>
       </header>
 
       <main className="cards">
         <RateCard
           title="USD → PLN"
-          subtitle="kurs rynkowy"
+          subtitle="mBank, kurs kupna"
           unit="PLN"
           rate={usdPln.rate}
           changePct={usdPln.changePct}
           loading={usdPln.loading}
           error={usdPln.error}
+          sellRate={usdPln.sellRate}
+          sellLabel="Sprzedaż"
         />
         <RateCard
           title="BTC → PLN"

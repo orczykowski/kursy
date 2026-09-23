@@ -1,34 +1,46 @@
-// fxratesapi.com - żywy kurs rynkowy (aktualizowany na bieżąco, bliższy Google niż
-// stały raz-dziennie fixing NBP), zmiana liczona względem kursu z wczoraj o północy UTC
-function isoDate(date) {
-  return date.toISOString().slice(0, 10);
+// mBank - realny kurs kupna/sprzedaży dolara w tym banku (publiczny endpoint
+// używany przez ich własną stronę, CORS: access-control-allow-origin: *).
+// Najpierw pobieramy "wykres" z historią odczytów, żeby znać ostatnią datę,
+// w której bank faktycznie publikował kurs (w weekendy/święta nie publikuje),
+// a dopiero potem pobieramy pełne dane (kupno/sprzedaż) dla tej konkretnej daty.
+async function fetchMbankDay(date) {
+  const res = await fetch(
+    `https://www.mbank.pl/api/exchange-rates/exchange_rates_date_${date}.json?_=${Date.now()}`,
+    { cache: "no-store" }
+  );
+  if (!res.ok) throw new Error("Błąd mBank API");
+  const data = await res.json();
+  return data.items.find((i) => i.currency === "USD");
 }
 
 export async function fetchUsdPln() {
-  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const chartRes = await fetch(
+    `https://www.mbank.pl/api/exchange-rates/exchange_rates_chart.json?_=${Date.now()}`,
+    { cache: "no-store" }
+  );
+  if (!chartRes.ok) throw new Error("Błąd mBank API");
+  const chart = await chartRes.json();
+  const usdSeries = chart.find((c) => c.currency === "USD")?.items ?? [];
+  if (usdSeries.length === 0) throw new Error("Brak danych USD z mBank");
 
-  const [currentRes, historicalRes] = await Promise.all([
-    fetch(`https://api.fxratesapi.com/latest?base=USD&currencies=PLN&_=${Date.now()}`, {
-      cache: "no-store",
-    }),
-    fetch(
-      `https://api.fxratesapi.com/historical?date=${isoDate(yesterday)}&base=USD&currencies=PLN&_=${Date.now()}`,
-      { cache: "no-store" }
-    ),
+  const latestDate = usdSeries[0].date;
+  const prevDate = usdSeries.find((i) => i.date !== latestDate)?.date;
+
+  const [today, prevDay] = await Promise.all([
+    fetchMbankDay(latestDate),
+    prevDate ? fetchMbankDay(prevDate) : Promise.resolve(null),
   ]);
-  if (!currentRes.ok || !historicalRes.ok) throw new Error("Błąd fxratesapi");
 
-  const current = await currentRes.json();
-  const historical = await historicalRes.json();
-  const rate = current.rates.PLN;
-  const prevRate = historical.rates.PLN;
+  const rate = today.purchaseRate;
+  const prevRate = prevDay ? prevDay.purchaseRate : rate;
 
   return {
     rate,
+    sellRate: today.sellingRate,
     prevRate,
     change: rate - prevRate,
-    changePct: ((rate - prevRate) / prevRate) * 100,
-    date: current.date,
+    changePct: prevRate ? ((rate - prevRate) / prevRate) * 100 : 0,
+    date: latestDate,
   };
 }
 

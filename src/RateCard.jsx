@@ -5,7 +5,17 @@ function formatNumber(value, digits = 2) {
   });
 }
 
-export default function RateCard({ title, subtitle, rate, unit, changePct, loading, error }) {
+export default function RateCard({
+  title,
+  subtitle,
+  rate,
+  unit,
+  changePct,
+  loading,
+  error,
+  sellRate,
+  sellLabel,
+}) {
   const isUp = changePct > 0;
   const isDown = changePct < 0;
   const trendClass = isUp ? "up" : isDown ? "down" : "flat";
@@ -30,6 +40,11 @@ export default function RateCard({ title, subtitle, rate, unit, changePct, loadi
             {arrow} {changePct >= 0 ? "+" : ""}
             {formatNumber(changePct)}% dzisiaj
           </p>
+          {sellRate != null && (
+            <p className="sell-rate">
+              {sellLabel ?? "Sprzedaż"}: {formatNumber(sellRate)} {unit}
+            </p>
+          )}
         </>
       )}
     </div>
