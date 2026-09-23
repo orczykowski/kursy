@@ -24,7 +24,7 @@ export default function RateCard({ title, subtitle, rate, unit, changePct, loadi
       {!loading && !error && (
         <>
           <p className="rate">
-            {formatNumber(rate)} <span className="unit">{unit}</span>
+            {formatNumber(rate)} {unit && <span className="unit">{unit}</span>}
           </p>
           {changePct != null && (
             <p className={`change ${trendClass}`}>
