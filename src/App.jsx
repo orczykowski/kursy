@@ -50,13 +50,13 @@ function App() {
     <div className="app">
       <header className="app-header">
         <h1>Kursy walut</h1>
-        <p className="tagline">USD/PLN z NBP, BTC z CoinGecko — dane poglądowe</p>
+        <p className="tagline">Kursy rynkowe (fxratesapi, CoinGecko) — dane poglądowe</p>
       </header>
 
       <main className="cards">
         <RateCard
           title="USD → PLN"
-          subtitle="NBP, tabela A"
+          subtitle="kurs rynkowy"
           unit="PLN"
           rate={usdPln.rate}
           changePct={usdPln.changePct}

@@ -1,18 +1,34 @@
-// NBP API - oficjalne kursy średnie NBP (tabela A), kurs z dziś + wczoraj do wyliczenia zmiany
+// fxratesapi.com - żywy kurs rynkowy (aktualizowany na bieżąco, bliższy Google niż
+// stały raz-dziennie fixing NBP), zmiana liczona względem kursu z wczoraj o północy UTC
+function isoDate(date) {
+  return date.toISOString().slice(0, 10);
+}
+
 export async function fetchUsdPln() {
-  const res = await fetch(
-    `https://api.nbp.pl/api/exchangerates/rates/a/usd/last/2/?format=json&_=${Date.now()}`,
-    { cache: "no-store" }
-  );
-  if (!res.ok) throw new Error("Błąd NBP API");
-  const data = await res.json();
-  const [prev, current] = data.rates;
+  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+  const [currentRes, historicalRes] = await Promise.all([
+    fetch(`https://api.fxratesapi.com/latest?base=USD&currencies=PLN&_=${Date.now()}`, {
+      cache: "no-store",
+    }),
+    fetch(
+      `https://api.fxratesapi.com/historical?date=${isoDate(yesterday)}&base=USD&currencies=PLN&_=${Date.now()}`,
+      { cache: "no-store" }
+    ),
+  ]);
+  if (!currentRes.ok || !historicalRes.ok) throw new Error("Błąd fxratesapi");
+
+  const current = await currentRes.json();
+  const historical = await historicalRes.json();
+  const rate = current.rates.PLN;
+  const prevRate = historical.rates.PLN;
+
   return {
-    rate: current.mid,
-    prevRate: prev.mid,
-    change: current.mid - prev.mid,
-    changePct: ((current.mid - prev.mid) / prev.mid) * 100,
-    date: current.effectiveDate,
+    rate,
+    prevRate,
+    change: rate - prevRate,
+    changePct: ((rate - prevRate) / prevRate) * 100,
+    date: current.date,
   };
 }
 
