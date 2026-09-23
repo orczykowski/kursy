@@ -86,7 +86,7 @@ function App() {
           rate={btc.pln?.rate != null ? 0.065 * btc.pln.rate : undefined}
           loading={btc.loading}
           error={btc.error}
-          decimalSeparator=":"
+          decimalSeparator="."
         />
       </main>
 
