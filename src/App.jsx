@@ -82,8 +82,7 @@ function App() {
           error={btc.error}
         />
         <RateCard
-          title="BTC"
-          subtitle="0,065 BTC"
+          title="Portfel"
           unit="PLN"
           rate={btc.pln?.rate != null ? 0.065 * btc.pln.rate : undefined}
           changePct={btc.pln?.changePct}
