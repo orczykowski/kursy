@@ -26,10 +26,12 @@ export default function RateCard({ title, subtitle, rate, unit, changePct, loadi
           <p className="rate">
             {formatNumber(rate)} <span className="unit">{unit}</span>
           </p>
-          <p className={`change ${trendClass}`}>
-            {arrow} {changePct >= 0 ? "+" : ""}
-            {formatNumber(changePct)}% dzisiaj
-          </p>
+          {changePct != null && (
+            <p className={`change ${trendClass}`}>
+              {arrow} {changePct >= 0 ? "+" : ""}
+              {formatNumber(changePct)}% dzisiaj
+            </p>
+          )}
         </>
       )}
     </div>

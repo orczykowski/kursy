@@ -85,7 +85,6 @@ function App() {
           title="Portfel"
           unit="PLN"
           rate={btc.pln?.rate != null ? 0.065 * btc.pln.rate : undefined}
-          changePct={btc.pln?.changePct}
           loading={btc.loading}
           error={btc.error}
         />
