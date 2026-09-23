@@ -1,11 +1,21 @@
-function formatNumber(value, digits = 2) {
-  return value.toLocaleString("pl-PL", {
+function formatNumber(value, digits = 2, decimalSeparator = ",") {
+  const formatted = value.toLocaleString("pl-PL", {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   });
+  return decimalSeparator === "," ? formatted : formatted.replace(",", decimalSeparator);
 }
 
-export default function RateCard({ title, subtitle, rate, unit, changePct, loading, error }) {
+export default function RateCard({
+  title,
+  subtitle,
+  rate,
+  unit,
+  changePct,
+  loading,
+  error,
+  decimalSeparator,
+}) {
   const isUp = changePct > 0;
   const isDown = changePct < 0;
   const trendClass = isUp ? "up" : isDown ? "down" : "flat";
@@ -24,7 +34,7 @@ export default function RateCard({ title, subtitle, rate, unit, changePct, loadi
       {!loading && !error && (
         <>
           <p className="rate">
-            {formatNumber(rate)} {unit && <span className="unit">{unit}</span>}
+            {formatNumber(rate, 2, decimalSeparator)} {unit && <span className="unit">{unit}</span>}
           </p>
           {changePct != null && (
             <p className={`change ${trendClass}`}>
