@@ -82,8 +82,8 @@ function App() {
           error={btc.error}
         />
         <RateCard
-          title="CPT"
-          rate={btc.pln?.rate != null ? 0.065 * btc.pln.rate : undefined}
+          title="goal"
+          rate={btc.pln?.rate != null ? 56000 - 0.06 * btc.pln.rate : undefined}
           loading={btc.loading}
           error={btc.error}
           decimalSeparator="."
