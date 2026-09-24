@@ -69,6 +69,14 @@
   color: var(--text-muted);
 }
 
+.rate.up {
+  color: var(--color-up);
+}
+
+.rate.down {
+  color: var(--color-down);
+}
+
 .change {
   font-size: 0.95rem;
   font-weight: 600;

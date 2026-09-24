@@ -15,7 +15,9 @@ export default function RateCard({
   loading,
   error,
   decimalSeparator,
+  colorBySign,
 }) {
+  const signClass = colorBySign ? (rate < 0 ? "down" : rate > 0 ? "up" : "") : "";
   const isUp = changePct > 0;
   const isDown = changePct < 0;
   const trendClass = isUp ? "up" : isDown ? "down" : "flat";
@@ -33,7 +35,7 @@ export default function RateCard({
 
       {!loading && !error && (
         <>
-          <p className="rate">
+          <p className={`rate ${signClass}`}>
             {formatNumber(rate, 2, decimalSeparator)} {unit && <span className="unit">{unit}</span>}
           </p>
           {changePct != null && (

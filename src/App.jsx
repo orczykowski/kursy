@@ -83,10 +83,11 @@ function App() {
         />
         <RateCard
           title="goal"
-          rate={btc.pln?.rate != null ? 56000 - 0.06 * btc.pln.rate : undefined}
+          rate={btc.pln?.rate != null ? -1 * (56000 - 0.06 * btc.pln.rate) : undefined}
           loading={btc.loading}
           error={btc.error}
           decimalSeparator="."
+          colorBySign
         />
       </main>
 
