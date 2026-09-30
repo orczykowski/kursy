@@ -38,8 +38,60 @@ export async function fetchUsdPln() {
   };
 }
 
-// CoinGecko API - kurs BTC do PLN i USD wraz ze zmianą 24h
-export async function fetchBtcRates() {
+// Kurs BTC pobieramy z kilku giełd w kolejności (fallback), bo pojedyncze
+// API potrafi zawieść z różnych powodów: CoinGecko rate-limituje anonimowe
+// zapytania po kilku wywołaniach (429), Binance blokuje połączenia z części
+// krajów już na poziomie sieci (np. USA). Jeśli jedno API padnie, próbujemy
+// kolejne, żeby aplikacja nadal pokazywała kurs.
+//
+// Coinbase i Kraken nie udostępniają pary BTC/PLN, więc kurs PLN liczymy
+// mnożąc BTC/USD przez już posiadany kurs USD/PLN (fxratesapi).
+
+async function fetchFromCoinbase(usdPlnRate) {
+  const [spotRes, statsRes] = await Promise.all([
+    fetch(`https://api.coinbase.com/v2/prices/BTC-USD/spot?_=${Date.now()}`, {
+      cache: "no-store",
+    }),
+    fetch(`https://api.exchange.coinbase.com/products/BTC-USD/stats?_=${Date.now()}`, {
+      cache: "no-store",
+    }),
+  ]);
+  if (!spotRes.ok || !statsRes.ok) throw new Error("Błąd Coinbase API");
+
+  const spot = await spotRes.json();
+  const stats = await statsRes.json();
+
+  const usdRate = Number(spot.data.amount);
+  const openPrice = Number(stats.open);
+  const usdChangePct = ((usdRate - openPrice) / openPrice) * 100;
+
+  return {
+    usd: { rate: usdRate, changePct: usdChangePct },
+    pln: { rate: usdRate * usdPlnRate, changePct: usdChangePct },
+  };
+}
+
+async function fetchFromKraken(usdPlnRate) {
+  const res = await fetch(`https://api.kraken.com/0/public/Ticker?pair=XBTUSD&_=${Date.now()}`, {
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error("Błąd Kraken API");
+
+  const data = await res.json();
+  if (data.error?.length) throw new Error(data.error.join(", "));
+  const ticker = data.result.XXBTZUSD;
+
+  const usdRate = Number(ticker.c[0]);
+  const openPrice = Number(ticker.o);
+  const usdChangePct = ((usdRate - openPrice) / openPrice) * 100;
+
+  return {
+    usd: { rate: usdRate, changePct: usdChangePct },
+    pln: { rate: usdRate * usdPlnRate, changePct: usdChangePct },
+  };
+}
+
+async function fetchFromCoinGecko() {
   const res = await fetch(
     `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=pln,usd&include_24hr_change=true&_=${Date.now()}`,
     { cache: "no-store" }
@@ -51,4 +103,18 @@ export async function fetchBtcRates() {
     pln: { rate: btc.pln, changePct: btc.pln_24h_change },
     usd: { rate: btc.usd, changePct: btc.usd_24h_change },
   };
+}
+
+const BTC_PROVIDERS = [fetchFromCoinbase, fetchFromKraken, fetchFromCoinGecko];
+
+export async function fetchBtcRates(usdPlnRate) {
+  let lastError;
+  for (const provider of BTC_PROVIDERS) {
+    try {
+      return await provider(usdPlnRate);
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError;
 }

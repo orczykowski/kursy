@@ -15,12 +15,14 @@ function App() {
     setUsdPln((s) => ({ ...s, loading: true, error: false }));
     setBtc((s) => ({ ...s, loading: true, error: false }));
 
+    let usdPlnRate;
     try {
       let data = !force && readCache("usdPln");
       if (!data) {
         data = await fetchUsdPln();
         writeCache("usdPln", data);
       }
+      usdPlnRate = data.rate;
       setUsdPln({ ...data, loading: false, error: false });
     } catch {
       setUsdPln({ loading: false, error: true });
@@ -29,7 +31,8 @@ function App() {
     try {
       let data = !force && readCache("btc");
       if (!data) {
-        data = await fetchBtcRates();
+        if (usdPlnRate == null) throw new Error("Brak kursu USD/PLN do przeliczenia BTC/PLN");
+        data = await fetchBtcRates(usdPlnRate);
         writeCache("btc", data);
       }
       setBtc({ ...data, loading: false, error: false });
@@ -50,7 +53,7 @@ function App() {
     <div className="app">
       <header className="app-header">
         <h1>Kursy walut</h1>
-        <p className="tagline">Kursy rynkowe (fxratesapi, CoinGecko) — dane poglądowe</p>
+        <p className="tagline">Kursy rynkowe (fxratesapi, Coinbase) — dane poglądowe</p>
       </header>
 
       <main className="cards">
@@ -65,7 +68,7 @@ function App() {
         />
         <RateCard
           title="BTC → PLN"
-          subtitle="CoinGecko"
+          subtitle="Coinbase"
           unit="PLN"
           rate={btc.pln?.rate}
           changePct={btc.pln?.changePct}
@@ -74,7 +77,7 @@ function App() {
         />
         <RateCard
           title="BTC → USD"
-          subtitle="CoinGecko"
+          subtitle="Coinbase"
           unit="USD"
           rate={btc.usd?.rate}
           changePct={btc.usd?.changePct}
