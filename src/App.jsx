@@ -86,7 +86,7 @@ function App() {
         />
         <RateCard
           title="goal"
-          rate={btc.pln?.rate != null ? -1 * (56000 - 0.06 * btc.pln.rate) : undefined}
+          rate={btc.pln?.rate != null ? -1 * (56000 - 0.065 * btc.pln.rate) : undefined}
           loading={btc.loading}
           error={btc.error}
           decimalSeparator="."
@@ -103,11 +103,6 @@ function App() {
             Ostatnia aktualizacja: {lastUpdate.toLocaleTimeString("pl-PL")}
           </p>
         )}
-        <p className="disclaimer">
-          Kurs rynkowy (mid-market), poglądowy. Realny kurs kupna/sprzedaży w
-          banku lub kantorze będzie się nieco różnić (spread) — nie stanowi
-          porady inwestycyjnej.
-        </p>
       </footer>
     </div>
   );
